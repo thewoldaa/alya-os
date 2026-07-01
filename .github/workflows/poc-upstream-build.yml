@@ -80,6 +80,17 @@ jobs:
             sudo \
             git
 
+          # ── Make CachyOS signing key available on the host ──
+          # mkarchiso calls pacstrap with -G (no host keyring copy), so we will
+          # later pre-populate the profile's airootfs with the CachyOS key.
+          # First, install the keyring package on the host. The TrustAll is
+          # needed to break the chicken-and-egg: we need the key to verify the
+          # keyring package itself.
+          printf '%s\n' '' '[cachyos]' \
+            'Server = https://mirror.cachyos.org/repo/$arch/$repo' \
+            'SigLevel = Optional TrustAll' >> /etc/pacman.conf
+          pacman -Syu --noconfirm cachyos-keyring
+
       # ── Step 4: Clone upstream CachyOS at pinned commit ──
       - name: Clone upstream CachyOS
         id: upstream
@@ -91,7 +102,20 @@ jobs:
           echo "commit=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
           echo "URL=https://github.com/CachyOS/CachyOS-Live-ISO" >> "$GITHUB_ENV"
 
-      # ── Step 5: Record pre-build metrics ──
+      # ── Step 5: Pre-populate GPG keyring for CachyOS repo verification ──
+      # mkarchiso calls pacstrap with -G, which prevents copying the host
+      # keyring into the chroot. To work around this, we pre-populate the
+      # profile's airootfs with the host keyring (which now includes the
+      # CachyOS key). mkarchiso's _make_custom_airootfs() copies this into
+      # the chroot before pacstrap runs, making the CachyOS key available
+      # when pacman syncs the CachyOS database.
+      - name: Pre-populate CachyOS keyring in airootfs
+        run: |
+          mkdir -p "${UPSTREAM_DIR}/archiso/airootfs/etc/pacman.d/gnupg"
+          cp -a --no-preserve=ownership /etc/pacman.d/gnupg/. \
+            "${UPSTREAM_DIR}/archiso/airootfs/etc/pacman.d/gnupg/"
+
+      # ── Step 6: Record pre-build metrics ──
       - name: Record start metrics
         run: |
           echo "START_TS=$(date +%s)" >> "$GITHUB_ENV"
@@ -100,14 +124,14 @@ jobs:
           free -h
           df -h /
 
-      # ── Step 6: Build upstream CachyOS ISO via official entry point ──
+      # ── Step 7: Build upstream CachyOS ISO via official entry point ──
       - name: Build upstream CachyOS ISO
         id: build
         working-directory: ${{ env.UPSTREAM_DIR }}
         run: |
           bash buildiso.sh -p "${BUILD_PROFILE}" -v
 
-      # ── Step 7: Record post-build metrics ──
+      # ── Step 8: Record post-build metrics ──
       - name: Record end metrics
         run: |
           echo "END_TS=$(date +%s)" >> "$GITHUB_ENV"
@@ -116,7 +140,7 @@ jobs:
           free -h
           df -h /
 
-      # ── Step 8: Locate output and generate PoC report ──
+      # ── Step 9: Locate output and generate PoC report ──
       - name: Measure ISO and generate report
         run: |
           OUT_DIR="${UPSTREAM_DIR}/out/${BUILD_PROFILE}"
@@ -164,7 +188,7 @@ jobs:
           echo "=== PoC Build Report ==="
           cat "$REPORT"
 
-      # ── Step 9: Upload ISO (artifact expires in 7 days) ──
+      # ── Step 10: Upload ISO (artifact expires in 7 days) ──
       - name: Upload ISO
         uses: actions/upload-artifact@v4
         with:
@@ -172,7 +196,7 @@ jobs:
           path: ${{ env.UPSTREAM_DIR }}/out/${{ env.BUILD_PROFILE }}/*.iso
           retention-days: 7
 
-      # ── Step 10: Upload PoC report ──
+      # ── Step 11: Upload PoC report ──
       - name: Upload PoC report
         uses: actions/upload-artifact@v4
         with:
@@ -180,7 +204,7 @@ jobs:
           path: ${{ env.UPSTREAM_DIR }}/out/${{ env.BUILD_PROFILE }}/poc-report.txt
           retention-days: 90
 
-      # ── Step 11: Upload build logs ──
+      # ── Step 12: Upload build logs ──
       - name: Upload build logs
         if: always()
         uses: actions/upload-artifact@v4
