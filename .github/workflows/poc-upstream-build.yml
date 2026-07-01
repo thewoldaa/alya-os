@@ -75,6 +75,8 @@ jobs:
             archiso \
             mkinitcpio-archiso \
             squashfs-tools \
+            grub \
+            syslinux \
             sudo \
             git
 
