@@ -1,0 +1,13 @@
+NAME="Alya OS"
+PRETTY_NAME="Alya OS 0.1 (Altay)"
+ID=alyaos
+ID_LIKE="cachyos arch"
+BUILD_ID=0.1.0
+ANSI_COLOR="0;36"
+HOME_URL="https://alya-os.org"
+DOCUMENTATION_URL="https://docs.alya-os.org"
+SUPPORT_URL="https://github.com/alya-os/alya-os"
+BUG_REPORT_URL="https://github.com/alya-os/alya-os/issues"
+LOGO=alya-os
+VERSION_CODENAME=altay
+VERSION_ID=0.1

@@ -1,0 +1,21 @@
+# Maintainer: Alya OS Team <dev@alya-os.org>
+pkgname=alya-launcher
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Alya OS - Lightweight full-screen launcher"
+arch=('any')
+url="https://alya-os.org"
+license=('MIT')
+depends=('python' 'python-gobject' 'gtk3' 'python-cairo')
+install=alya-launcher.install
+source=('src/launcher.py' 'data/launcher.json' 'data/alya-launcher.desktop' 'data/alya-icon.png' 'LICENSE')
+sha256sums=('SKIP')
+backup=()
+
+package() {
+    install -Dm755 "${srcdir}/src/launcher.py" "${pkgdir}/usr/bin/alya-launcher"
+    install -Dm644 "${srcdir}/data/launcher.json" "${pkgdir}/usr/share/alya/launcher.json"
+    install -Dm644 "${srcdir}/data/alya-launcher.desktop" "${pkgdir}/usr/share/applications/alya-launcher.desktop"
+    install -Dm644 "${srcdir}/data/alya-icon.png" "${pkgdir}/usr/share/pixmaps/alya-launcher.png"
+    install -Dm644 "${srcdir}/LICENSE" "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+}

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<labwc_config>
+    <core><decoration>1</decoration><adaptive_sync>false</adaptive_sync></core>
+    <theme><name>alya-dark</name><cornerRadius>6</cornerRadius><fontName>JetBrains Mono Nerd Font</fontName><fontSize>10</fontSize></theme>
+    <keyboard>
+        <default />
+        <keybind key="W-Return"><action name="Execute" command="foot" /></keybind>
+        <keybind key="W-d"><action name="Execute" command="/usr/bin/alya-launcher" /></keybind>
+        <keybind key="W-q"><action name="Close" /></keybind>
+        <keybind key="W-f"><action name="ToggleFullscreen" /></keybind>
+    </keyboard>
+    <windowRules>
+        <windowRule identifier="launcher.py" matchOnce="false"><action name="FullScreen" /></windowRule>
+    </windowRules>
+    <workspaces><names><name>Terminal</name><name>Development</name><name>AI</name><name>Minecraft</name><name>Web</name></names></workspaces>
+</labwc_config>

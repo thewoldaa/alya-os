@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=LXQt (Alya OS)
+Comment=Lightweight Qt desktop environment
+Exec=lxqt-session
+Type=Application
+DesktopNames=lxqt

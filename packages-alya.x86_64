@@ -1,0 +1,63 @@
+# Alya OS - Additional packages on top of CachyOS desktop profile
+# This file is APPENDED to CachyOS's packages_desktop.x86_64 during build
+# Contains ONLY packages NOT already in CachyOS
+
+# === WAYLAND COMPOSITOR ===
+labwc
+wlroots
+wayland
+wayland-utils
+
+# === DISPLAY MANAGER ===
+ly
+
+# === WAYLAND DESKTOP APPS ===
+foot
+swaybg
+swaylock
+waybar
+mako
+polkit-gnome
+imv
+grim
+slurp
+swappy
+wl-clipboard
+
+# === X11 FALLBACK ===
+picom
+feh
+nitrogen
+
+# === THEMES & FONTS ===
+ttf-jetbrains-mono-nerd
+xcursor-vanilla-dmz
+papirus-icon-theme
+
+# === PYTHON GTK (for launcher, hub) ===
+python-gobject
+python-cairo
+python-psutil
+python-dbus
+
+# === AI ===
+ollama
+jdk21-openjdk
+jdk21-openjdk-src
+
+# === MINECRAFT ===
+prismlauncher
+gradle
+maven
+fernflower
+
+# === DEV TOOLS ===
+python-pillow
+optipng
+oxipng
+
+# === ALYA OS CUSTOM PACKAGES ===
+alya-launcher
+alya-hub
+workspace-manager
+alya-theme

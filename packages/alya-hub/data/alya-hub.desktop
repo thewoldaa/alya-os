@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Alya Hub
+Comment=Alya OS system control center
+Exec=alya-hub
+Type=Application
+Icon=alya-hub
+Categories=Settings;System;
+Terminal=false

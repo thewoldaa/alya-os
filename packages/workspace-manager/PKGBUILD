@@ -1,0 +1,20 @@
+# Maintainer: Alya OS Team <dev@alya-os.org>
+pkgname=workspace-manager
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Alya OS - Workspace management tool"
+arch=('any')
+url="https://alya-os.org"
+license=('MIT')
+depends=('python' 'python-gobject' 'gtk3')
+install=workspace-manager.install
+source=('src/workspace-manager.py' 'data/workspace-manager.desktop' 'data/workspace-manager-icon.png' 'LICENSE')
+sha256sums=('SKIP')
+backup=()
+
+package() {
+    install -Dm755 "${srcdir}/src/workspace-manager.py" "${pkgdir}/usr/bin/workspace-manager"
+    install -Dm644 "${srcdir}/data/workspace-manager.desktop" "${pkgdir}/usr/share/applications/workspace-manager.desktop"
+    install -Dm644 "${srcdir}/data/workspace-manager-icon.png" "${pkgdir}/usr/share/pixmaps/workspace-manager.png"
+    install -Dm644 "${srcdir}/LICENSE" "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+}

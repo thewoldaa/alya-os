@@ -1,0 +1,20 @@
+# Maintainer: Alya OS Team <dev@alya-os.org>
+pkgname=alya-hub
+pkgver=0.1.0
+pkgrel=1
+pkgdesc="Alya OS - System control center"
+arch=('any')
+url="https://alya-os.org"
+license=('MIT')
+depends=('python' 'python-gobject' 'gtk3' 'python-psutil')
+install=alya-hub.install
+source=('src/alya-hub.py' 'data/alya-hub.desktop' 'data/alya-hub-icon.png' 'LICENSE')
+sha256sums=('SKIP')
+backup=()
+
+package() {
+    install -Dm755 "${srcdir}/src/alya-hub.py" "${pkgdir}/usr/bin/alya-hub"
+    install -Dm644 "${srcdir}/data/alya-hub.desktop" "${pkgdir}/usr/share/applications/alya-hub.desktop"
+    install -Dm644 "${srcdir}/data/alya-hub-icon.png" "${pkgdir}/usr/share/pixmaps/alya-hub.png"
+    install -Dm644 "${srcdir}/LICENSE" "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
+}

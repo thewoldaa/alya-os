@@ -1,0 +1,15 @@
+@define-color bg #1a1b26;
+@define-color bg-alt #24283b;
+@define-color bg-hover #2f3347;
+@define-color fg #c0caf5;
+@define-color fg-alt #a9b1d6;
+@define-color fg-dim #565f89;
+@define-color accent #7dcfff;
+@define-color border #414868;
+
+* { -GtkWidget-outline-radius: 6px; }
+.background { background-color: @bg; color: @fg; }
+button { background-color: @bg-alt; color: @fg; border: 1px solid @border; border-radius: 6px; padding: 6px 12px; }
+button:hover { background-color: @bg-hover; }
+entry { background-color: @bg; color: @fg; border: 1px solid @border; border-radius: 4px; padding: 4px 8px; }
+entry:focus { border-color: @accent; }

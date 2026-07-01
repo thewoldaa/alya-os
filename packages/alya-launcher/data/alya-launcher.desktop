@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=Alya Launcher
+Comment=Alya OS application launcher
+Exec=alya-launcher
+Type=Application
+Icon=alya-launcher
+Categories=Utility;
+Terminal=false
+NoDisplay=true

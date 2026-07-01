@@ -1,0 +1,6 @@
+[Desktop Entry]
+Name=Openbox (Alya OS)
+Comment=Lightweight X11 window manager
+Exec=openbox-session
+Type=Application
+DesktopNames=openbox

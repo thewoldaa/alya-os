@@ -1,0 +1,71 @@
+name: Build Failure
+description: Report a build failure in CI or local build
+labels: [bug, build]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Build Failure Report
+        This template is for build failures specifically.
+        Include the full build log and environment details.
+
+  - type: dropdown
+    id: origin
+    attributes:
+      label: Failure Origin
+      description: Where does the failure originate?
+      options:
+        - GitHub Actions runner
+        - Arch Linux container (Docker)
+        - mkarchiso
+        - CachyOS upstream
+        - Alya overlay
+        - Alya build.sh
+        - Alya custom packages (makepkg)
+        - Unknown
+    validations:
+      required: true
+
+  - type: input
+    id: stage
+    attributes:
+      label: Failed Stage
+      description: Which stage failed?
+      placeholder: "Stage 3/9: Overlay, Stage 6/9: Build Packages, etc."
+    validations:
+      required: true
+
+  - type: textarea
+    id: log
+    attributes:
+      label: Full Build Log
+      description: Paste the full build output
+      render: text
+    validations:
+      required: true
+
+  - type: textarea
+    id: error
+    attributes:
+      label: Error Message
+      description: The exact error message (if any)
+      render: text
+    validations:
+      required: true
+
+  - type: dropdown
+    id: context
+    attributes:
+      label: Build Context
+      options:
+        - PoC: upstream CachyOS only
+        - Full Alya OS build
+        - Local build (not CI)
+    validations:
+      required: true
+
+  - type: textarea
+    id: fix
+    attributes:
+      label: Proposed Fix
+      description: Root cause analysis and minimal fix

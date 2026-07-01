@@ -1,0 +1,40 @@
+From: Alya OS Team <dev@alya-os.org>
+Date: 2026-07-01
+Subject: efiboot: Change all boot entry titles from CachyOS to Alya OS
+
+Changes "CachyOS" to "Alya OS" in all three UEFI systemd-boot entries.
+Each is a single-line title change.
+
+diff --git a/archiso/efiboot/loader/entries/01-archiso-linux.conf b/archiso/efiboot/loader/entries/01-archiso-linux.conf
+index 7f3c2b1..a8e4c9d 100644
+--- a/archiso/efiboot/loader/entries/01-archiso-linux.conf
++++ b/archiso/efiboot/loader/entries/01-archiso-linux.conf
+@@ -1,5 +1,5 @@
+-title   CachyOS %ARCH% UEFI Default
++title   Alya OS %ARCH% UEFI Default
+ sort-key A
+ linux   /%INSTALL_DIR%/boot/%ARCH%/vmlinuz-linux-cachyos-lts
+ initrd  /%INSTALL_DIR%/boot/%ARCH%/initramfs-linux-cachyos-lts.img
+ options archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% cow_spacesize=10G copytoram=auto module_blacklist=pcspkr i915.modeset=1 amdgpu.modeset=1 nvme_load=yes
+diff --git a/archiso/efiboot/loader/entries/02-archiso-linux-cachyos.conf b/archiso/efiboot/loader/entries/02-archiso-linux-cachyos.conf
+index 7f3c2b1..a8e4c9d 100644
+--- a/archiso/efiboot/loader/entries/02-archiso-linux-cachyos.conf
++++ b/archiso/efiboot/loader/entries/02-archiso-linux-cachyos.conf
+@@ -1,5 +1,5 @@
+-title   CachyOS %ARCH% UEFI Default
++title   Alya OS %ARCH% UEFI Default
+ sort-key A
+ linux   /%INSTALL_DIR%/boot/%ARCH%/vmlinuz-linux-cachyos
+ initrd  /%INSTALL_DIR%/boot/%ARCH%/initramfs-linux-cachyos.img
+ options archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% cow_spacesize=10G copytoram=auto module_blacklist=pcspkr i915.modeset=1 amdgpu.modeset=1 nvme_load=yes
+diff --git a/archiso/efiboot/loader/entries/fallback.conf b/archiso/efiboot/loader/entries/fallback.conf
+index 7f3c2b1..a8e4c9d 100644
+--- a/archiso/efiboot/loader/entries/fallback.conf
++++ b/archiso/efiboot/loader/entries/fallback.conf
+@@ -1,5 +1,5 @@
+-title   CachyOS %ARCH% Legacy Hardware Fallback (nomodeset)
++title   Alya OS %ARCH% Legacy Hardware Fallback (nomodeset)
+ sort-key  C
+ linux   /%INSTALL_DIR%/boot/%ARCH%/vmlinuz-linux-cachyos-lts
+ initrd  /%INSTALL_DIR%/boot/%ARCH%/initramfs-linux-cachyos-lts.img
+ options archisobasedir=%INSTALL_DIR% archisosearchuuid=%ARCHISO_UUID% cow_spacesize=10G copytoram=n module_blacklist=nvidia,nvidia_modeset,nvidia_uvm,nvidia_drm nomodeset nvme_load=yes

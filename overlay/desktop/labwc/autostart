@@ -1,0 +1,8 @@
+#!/bin/sh
+swaybg -i /usr/share/wallpapers/alya-default.png -m fill &
+/usr/lib/polkit-gnome/polkit-gnome-authentication-agent-1 &
+mako &
+waybar &
+nm-applet --indicator &
+xfce4-power-manager &
+/usr/bin/alya-launcher &

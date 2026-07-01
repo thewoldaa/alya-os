@@ -1,0 +1,19 @@
+# CODEOWNERS: Define who has review responsibility for each path.
+# These owners are automatically requested as reviewers for PRs.
+
+* @alya-os/maintainers
+
+# CI/CD workflows
+.github/ @alya-os/maintainers
+
+# Build system
+build.sh @alya-os/maintainers
+
+# Packages
+packages/ @alya-os/maintainers
+
+# Overlay configuration
+overlay/ @alya-os/maintainers
+
+# Documentation
+*.md @alya-os/maintainers

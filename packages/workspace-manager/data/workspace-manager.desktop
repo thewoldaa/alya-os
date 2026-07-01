@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Workspace Manager
+Comment=Alya OS workspace management tool
+Exec=workspace-manager
+Type=Application
+Icon=workspace-manager
+Categories=Utility;System;
+Terminal=false

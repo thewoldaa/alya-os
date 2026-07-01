@@ -1,0 +1,13 @@
+{
+    "buttons": [
+        {"label": "AI",         "icon": "accessories-text-editor",  "command": "foot bash -c 'echo AI Development Environment; exec bash'",       "color": "#7dcfff"},
+        {"label": "Development","icon": "applications-engineering","command": "code",                                                             "color": "#bb9af7"},
+        {"label": "Minecraft",  "icon": "applications-games",      "command": "prismlauncher",                                                    "color": "#f7768e"},
+        {"label": "Workspace",  "icon": "folder",                   "command": "workspace-manager",                                               "color": "#9ece6a"},
+        {"label": "Terminal",   "icon": "utilities-terminal",       "command": "foot",                                                            "color": "#e0af68"},
+        {"label": "Browser",    "icon": "web-browser",              "command": "firefox",                                                         "color": "#2ac3de"},
+        {"label": "Settings",   "icon": "preferences-system",       "command": "alya-hub settings",                                               "color": "#565f89"},
+        {"label": "Shutdown",   "icon": "system-shutdown",          "command": "alya-hub power",                                                  "color": "#414868"}
+    ],
+    "columns": 4, "spacing": 20, "show_clock": true, "show_system_info": true
+}
