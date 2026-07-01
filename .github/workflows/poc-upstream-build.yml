@@ -129,6 +129,8 @@ jobs:
         id: build
         working-directory: ${{ env.UPSTREAM_DIR }}
         run: |
+          # $USER must be set for buildiso.sh's post-mkarchiso chown step
+          export USER="${USER:-root}"
           bash buildiso.sh -p "${BUILD_PROFILE}" -v
 
       # ── Step 8: Record post-build metrics ──
