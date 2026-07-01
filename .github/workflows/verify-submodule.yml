@@ -1,0 +1,56 @@
+# Verify Submodule Integrity
+# ---------------------------
+# Purpose:    Verify that the CachyOS submodule is correctly pinned
+#             and has not drifted from the expected commit.
+#
+# Runs on:    Every push and pull request
+# Fails if:   Submodule is uninitialized, wrong commit, or dirty
+
+name: Verify Submodule
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout with submodules
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Verify submodule is initialized
+        run: |
+          if [ ! -f upstream/.git ]; then
+            echo "FAIL: Submodule not initialized"
+            echo "Run: git submodule update --init --recursive"
+            exit 1
+          fi
+          echo "PASS: Submodule initialized"
+
+      - name: Verify submodule is at pinned commit
+        run: |
+          EXPECTED="33bbc02104ee0172f7ce7e6c35f74360241fc61e"
+          ACTUAL=$(git -C upstream rev-parse HEAD 2>/dev/null || echo "unknown")
+          echo "Expected: $EXPECTED"
+          echo "Actual:   $ACTUAL"
+          if [ "$ACTUAL" != "$EXPECTED" ]; then
+            echo "FAIL: Submodule commit mismatch"
+            echo "Expected $EXPECTED but got $ACTUAL"
+            exit 1
+          fi
+          echo "PASS: Submodule at correct commit"
+
+      - name: Verify submodule is clean
+        run: |
+          STATUS=$(git -C upstream status --short 2>/dev/null)
+          if [ -n "$STATUS" ]; then
+            echo "FAIL: Submodule has uncommitted changes:"
+            echo "$STATUS"
+            exit 1
+          fi
+          echo "PASS: Submodule is clean"

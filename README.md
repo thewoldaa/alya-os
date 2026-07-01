@@ -24,15 +24,22 @@ AlyaOS/
 ## Build (on Arch/CachyOS)
 
 ```bash
-sudo pacman -S archiso xorriso squashfs-tools grub binutils
-git clone https://github.com/alya-os/alya-os
-cd AlyaOS
+# Clone with submodule
+git clone --recurse-submodules https://github.com/thewoldaa/alya-os.git
+cd alya-os
+
+# Install build dependencies
+sudo pacman -S --needed archiso xorriso squashfs-tools grub binutils base-devel
+
+# Build
 ./build.sh
 ```
 
 Output: `out/alya-os-YYYY.MM.DD-x86_64.iso`
 
-**Note:** Do NOT run `sudo ./build.sh` — the script calls `sudo` internally only for `mkarchiso` (Stage 8). Running as root would break `makepkg` (Stage 6).
+**Note:** 
+- Do NOT run `sudo ./build.sh` — the script calls `sudo` internally only for `mkarchiso` (Stage 8). Running as root would break `makepkg` (Stage 6).
+- If you cloned without `--recurse-submodules`, run: `git submodule update --init --recursive`
 
 ## Upstream Compatibility
 

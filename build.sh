@@ -43,7 +43,12 @@ if [[ ${#MISSING[@]} -gt 0 ]]; then
     fail "Missing: ${MISSING[*]}. Install: sudo pacman -S archiso xorriso squashfs-tools grub binutils"
 fi
 if [[ "$(uname -m)" != "x86_64" ]]; then fail "Host must be x86_64"; fi
-if [[ ! -d "${UPSTREAM_DIR}/.git" ]]; then fail "upstream/ not found. Clone: git clone https://github.com/CachyOS/CachyOS-Live-ISO.git upstream"; fi
+if [[ ! -f "${UPSTREAM_DIR}/archiso/profiledef.sh" ]]; then
+    fail "upstream/archiso not found. Ensure submodule is initialized: git submodule update --init --recursive"
+fi
+if [[ ! -f "${UPSTREAM_DIR}/buildiso.sh" ]]; then
+    warn "upstream/buildiso.sh not found (may be expected for some upstream versions)"
+fi
 log_ok "Environment validated"
 
 # ──────────────── STAGE 2: SYNC ────────────────
