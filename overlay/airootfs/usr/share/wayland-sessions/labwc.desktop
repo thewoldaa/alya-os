@@ -1,6 +1,0 @@
-[Desktop Entry]
-Name=Labwc (Alya OS)
-Comment=Lightweight Wayland compositor
-Exec=labwc
-Type=Application
-DesktopNames=labwc
