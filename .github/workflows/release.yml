@@ -81,10 +81,11 @@ jobs:
           cp -a --no-preserve=ownership /etc/pacman.d/gnupg/. \
             overlay/airootfs/etc/pacman.d/gnupg/
 
-      # ── Step 7: Initialize submodule ──
+      # ── Step 7: Initialize submodule (with safe.directory for submodule repos) ──
       - name: Initialize upstream submodule
         run: |
           git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+          git config --global --add safe.directory "${GITHUB_WORKSPACE}/upstream"
           git submodule update --init --recursive
           git -C upstream checkout 33bbc02
 

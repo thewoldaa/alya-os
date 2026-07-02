@@ -108,11 +108,13 @@ jobs:
             overlay/airootfs/etc/pacman.d/gnupg/
 
       # ── Step 7: Initialize submodule (build.sh expects pinned commit) ──
-      # Step 5 chowns the workspace to BUILD_USER; subsequent steps run as
-      # root. Git 2.35+ blocks this with safe.directory — add an exception.
+      # Step 5 chowns the workspace to BUILD_USER; steps run as root.
+      # Git 2.35+ treats each submodule repo separately and blocks
+      # dubious ownership — add exceptions for workspace + submodules.
       - name: Initialize upstream submodule
         run: |
           git config --global --add safe.directory "${GITHUB_WORKSPACE}"
+          git config --global --add safe.directory "${GITHUB_WORKSPACE}/upstream"
           git submodule update --init --recursive
           git -C upstream checkout 33bbc02
 
