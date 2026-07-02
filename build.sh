@@ -158,13 +158,15 @@ for pkg_dir in "${SCRIPT_DIR}/packages"/*/; do
     pkg=$(basename "${pkg_dir}")
     if [[ -f "${pkg_dir}/PKGBUILD" ]]; then
         log_i 6 "Building: ${pkg}"
-        (
+        if (
             cd "${pkg_dir}"
             BUILDDIR="${PKG_DIR}/src" PKGDEST="${PKG_DIR}" makepkg -sc --noconfirm --needed 2>&1 | tail -1
-        ) && {
+        ); then
             log_ok "Built: ${pkg}"
             BUILT_PKGS+=("${pkg}")
-        } || warn "Failed to build: ${pkg}"
+        else
+            warn "Failed to build: ${pkg}"
+        fi
     fi
 done
 
@@ -193,7 +195,7 @@ if [[ -f "${CACHYOS_LIST}" ]]; then
     log_i 7 "Copied CachyOS packages ($(basename "${CACHYOS_LIST}")): $(wc -l < "${CACHYOS_LIST}") packages"
 else
     warn "CachyOS package list not found"
-    > "${MERGED_LIST}"
+    : > "${MERGED_LIST}"
 fi
 
 if [[ -f "${ALYA_LIST}" ]]; then
