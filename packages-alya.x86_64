@@ -4,7 +4,7 @@
 
 # === WAYLAND COMPOSITOR ===
 labwc
-wlroots
+wlroots0.20
 wayland
 wayland-utils
 
@@ -27,7 +27,7 @@ wl-clipboard
 # === X11 FALLBACK ===
 picom
 feh
-nitrogen
+#nitrogen  # AUR-only, not in official repos
 
 # === THEMES & FONTS ===
 ttf-jetbrains-mono-nerd
@@ -43,13 +43,13 @@ python-dbus
 # === AI ===
 ollama
 jdk21-openjdk
-jdk21-openjdk-src
+#jdk21-openjdk-src  # not in official repos (2026)
 
 # === MINECRAFT ===
 prismlauncher
 gradle
 maven
-fernflower
+#fernflower  # AUR-only, not in official repos
 
 # === DEV TOOLS ===
 python-pillow

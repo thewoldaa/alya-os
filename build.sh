@@ -212,6 +212,13 @@ log_ok "Merged package list: ${TOTAL_PKGS} total packages"
 # ──────────────── STAGE 8: GENERATE ISO ────────────────
 stage 8 "Generate ISO"
 mkdir -p "${OUT_DIR}"
+
+# Add local repo for Alya custom packages into the iso profile's pacman.conf
+# so mkarchiso can find alya-{launcher,hub,theme} and workspace-manager
+log_i 8 "Adding local package repo to profile pacman.conf..."
+printf '\n[alya-custom]\nSigLevel = Optional TrustAll\nServer = file://%s\n' "${REPO_DIR}" \
+  >> "${BUILD_DIR}/archiso/pacman.conf"
+
 log_i 8 "Running mkarchiso..."
 cd "${SCRIPT_DIR}"
 sudo mkarchiso -v -w "${BUILD_DIR}/work" -o "${OUT_DIR}" "${BUILD_DIR}/archiso"
