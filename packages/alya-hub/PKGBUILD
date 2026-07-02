@@ -8,13 +8,13 @@ url="https://alya-os.org"
 license=('MIT')
 depends=('python' 'python-gobject' 'gtk3' 'python-psutil')
 install=alya-hub.install
-source=('src/alya-hub.py' 'data/alya-hub.desktop' 'data/alya-hub-icon.png' 'LICENSE')
+source=('alya-hub.py' 'alya-hub.desktop' 'alya-hub-icon.png' 'LICENSE')
 sha256sums=('SKIP')
 backup=()
 
 package() {
-    install -Dm755 "${srcdir}/src/alya-hub.py" "${pkgdir}/usr/bin/alya-hub"
-    install -Dm644 "${srcdir}/data/alya-hub.desktop" "${pkgdir}/usr/share/applications/alya-hub.desktop"
-    install -Dm644 "${srcdir}/data/alya-hub-icon.png" "${pkgdir}/usr/share/pixmaps/alya-hub.png"
+    install -Dm755 "${srcdir}/alya-hub.py" "${pkgdir}/usr/bin/alya-hub"
+    install -Dm644 "${srcdir}/alya-hub.desktop" "${pkgdir}/usr/share/applications/alya-hub.desktop"
+    install -Dm644 "${srcdir}/alya-hub-icon.png" "${pkgdir}/usr/share/pixmaps/alya-hub.png"
     install -Dm644 "${srcdir}/LICENSE" "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
 }

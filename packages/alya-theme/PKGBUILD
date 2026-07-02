@@ -8,29 +8,29 @@ url="https://alya-os.org"
 license=('MIT')
 depends=()
 install=alya-theme.install
-source=('data/wallpapers/alya-default.png' 'data/icons/alya-os.png'
-        'data/gtk/alya-dark.css' 'data/gtk/index.theme'
-        'data/plymouth/plymouthd.defaults' 'data/plymouth/alya.plymouth' 'data/plymouth/alya.script'
+source=('alya-default.png' 'alya-os.png'
+        'alya-dark.css' 'index.theme'
+        'plymouthd.defaults' 'alya.plymouth' 'alya.script'
         'LICENSE')
 sha256sums=('SKIP')
 backup=('etc/plymouth/plymouthd.defaults')
 
 package() {
     # Wallpaper
-    install -Dm644 "${srcdir}/data/wallpapers/alya-default.png" "${pkgdir}/usr/share/wallpapers/alya-default.png"
+    install -Dm644 "${srcdir}/alya-default.png" "${pkgdir}/usr/share/wallpapers/alya-default.png"
 
     # Icons
-    install -Dm644 "${srcdir}/data/icons/alya-os.png" "${pkgdir}/usr/share/pixmaps/alya-os.png"
-    install -Dm644 "${srcdir}/data/icons/alya-os.png" "${pkgdir}/usr/share/icons/hicolor/256x256/apps/alya-os.png"
+    install -Dm644 "${srcdir}/alya-os.png" "${pkgdir}/usr/share/pixmaps/alya-os.png"
+    install -Dm644 "${srcdir}/alya-os.png" "${pkgdir}/usr/share/icons/hicolor/256x256/apps/alya-os.png"
 
     # GTK theme
-    install -Dm644 "${srcdir}/data/gtk/alya-dark.css" "${pkgdir}/usr/share/themes/Alya-Dark/gtk-3.0/gtk.css"
-    install -Dm644 "${srcdir}/data/gtk/index.theme" "${pkgdir}/usr/share/themes/Alya-Dark/index.theme"
+    install -Dm644 "${srcdir}/alya-dark.css" "${pkgdir}/usr/share/themes/Alya-Dark/gtk-3.0/gtk.css"
+    install -Dm644 "${srcdir}/index.theme" "${pkgdir}/usr/share/themes/Alya-Dark/index.theme"
 
     # Plymouth
-    install -Dm644 "${srcdir}/data/plymouth/plymouthd.defaults" "${pkgdir}/etc/plymouth/plymouthd.defaults"
-    install -Dm644 "${srcdir}/data/plymouth/alya.plymouth" "${pkgdir}/usr/share/plymouth/themes/alya/alya.plymouth"
-    install -Dm644 "${srcdir}/data/plymouth/alya.script" "${pkgdir}/usr/share/plymouth/themes/alya/alya.script"
-    install -Dm644 "${srcdir}/data/icons/alya-os.png" "${pkgdir}/usr/share/plymouth/themes/alya/logo.png"
+    install -Dm644 "${srcdir}/plymouthd.defaults" "${pkgdir}/etc/plymouth/plymouthd.defaults"
+    install -Dm644 "${srcdir}/alya.plymouth" "${pkgdir}/usr/share/plymouth/themes/alya/alya.plymouth"
+    install -Dm644 "${srcdir}/alya.script" "${pkgdir}/usr/share/plymouth/themes/alya/alya.script"
+    install -Dm644 "${srcdir}/alya-os.png" "${pkgdir}/usr/share/plymouth/themes/alya/logo.png"
     install -Dm644 "${srcdir}/LICENSE" "${pkgdir}/usr/share/licenses/${pkgname}/LICENSE"
 }

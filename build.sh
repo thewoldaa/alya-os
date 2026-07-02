@@ -160,7 +160,7 @@ for pkg_dir in "${SCRIPT_DIR}/packages"/*/; do
         log_i 6 "Building: ${pkg}"
         if (
             cd "${pkg_dir}"
-            PKGDEST="${PKG_DIR}" makepkg -sc --noconfirm --needed 2>&1 | tail -1
+            BUILDDIR="${PKG_DIR}/src" PKGDEST="${PKG_DIR}" makepkg -sc --noconfirm --needed 2>&1 | tail -1
         ); then
             log_ok "Built: ${pkg}"
             BUILT_PKGS+=("${pkg}")
