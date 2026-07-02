@@ -1,0 +1,143 @@
+# Release Alya OS ISO
+# -------------------------------------------------------------------
+# Purpose:    Tag-triggered release workflow. Builds the full Alya OS
+#             ISO, creates a GitHub Release, and uploads the ISO +
+#             build report as release assets.
+#
+# Trigger:    Tags matching v* (e.g. v0.1.0, v0.2.0-rc1)
+#
+# Note:       This workflow duplicates the build steps from build.yml
+#             rather than using workflow_call (reusable workflows)
+#             because the ISO artifact must be available in the same
+#             job to attach to the release. Cross-job artifact
+#             download adds complexity and failure points for releases.
+
+name: Release Alya OS
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    container:
+      image: archlinux:base-devel
+      options: --privileged
+
+    env:
+      BUILD_USER: build
+
+    steps:
+      # ── Step 1: Checkout with submodules ──
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+          fetch-depth: 0
+
+      # ── Step 2: Initialize pacman keyring ──
+      - name: Initialize pacman keyring
+        run: |
+          pacman-key --init
+          pacman-key --populate archlinux
+
+      # ── Step 3: Install build dependencies ──
+      - name: Install dependencies
+        run: |
+          pacman -Syu --noconfirm
+          pacman -S --noconfirm --needed \
+            archiso \
+            mkinitcpio-archiso \
+            squashfs-tools \
+            xorriso \
+            grub \
+            syslinux \
+            sudo \
+            base-devel \
+            git
+
+          printf '%s\n' '' '[cachyos]' \
+            'Server = https://mirror.cachyos.org/repo/$arch/$repo' \
+            'SigLevel = Optional TrustAll' >> /etc/pacman.conf
+          pacman -Syu --noconfirm cachyos-keyring
+
+      # ── Step 4: Create build user ──
+      - name: Create build user
+        run: |
+          useradd -m -G wheel "${BUILD_USER}"
+          printf '%s ALL=(ALL) NOPASSWD: ALL\n' "${BUILD_USER}" >> /etc/sudoers
+          chown -R "${BUILD_USER}:" "${GITHUB_WORKSPACE}"
+
+      # ── Step 5: Pre-populate CachyOS GPG keyring ──
+      - name: Pre-populate CachyOS keyring in overlay
+        run: |
+          mkdir -p overlay/airootfs/etc/pacman.d/gnupg
+          cp -a --no-preserve=ownership /etc/pacman.d/gnupg/. \
+            overlay/airootfs/etc/pacman.d/gnupg/
+
+      # ── Step 6: Initialize submodule ──
+      - name: Initialize upstream submodule
+        run: |
+          git submodule update --init --recursive
+          git -C upstream checkout 33bbc02
+
+      # ── Step 7: Build Alya OS ISO ──
+      - name: Build Alya OS ISO
+        id: build
+        working-directory: ${{ github.workspace }}
+        run: |
+          export USER="${BUILD_USER}"
+          chown -R "${BUILD_USER}:" .
+          sudo -u "${BUILD_USER}" bash build.sh
+
+      # ── Step 8: Generate release metadata ──
+      - name: Generate release metadata
+        id: metadata
+        run: |
+          ISO_FILE=$(ls out/*.iso 2>/dev/null | head -1)
+          if [ -z "${ISO_FILE}" ]; then
+            echo "FAIL: No ISO found in out/"
+            ls -la out/ 2>/dev/null || echo "out/ does not exist"
+            exit 1
+          fi
+          echo "iso_path=${ISO_FILE}" >> "$GITHUB_OUTPUT"
+          echo "iso_name=$(basename "${ISO_FILE}")" >> "$GITHUB_OUTPUT"
+          echo "iso_size=$(du -h "${ISO_FILE}" | cut -f1)" >> "$GITHUB_OUTPUT"
+          echo "iso_sha256=$(sha256sum "${ISO_FILE}" | cut -d' ' -f1)" >> "$GITHUB_OUTPUT"
+
+          TAG="${GITHUB_REF_NAME}"
+          echo "tag=${TAG}" >> "$GITHUB_OUTPUT"
+          echo "version=${TAG#v}" >> "$GITHUB_OUTPUT"
+
+          # Copy build report for release attachment
+          REPORT_FILE="out/${TAG}-build-report.txt"
+          if [ -f out/build-report.txt ]; then
+            cp out/build-report.txt "${REPORT_FILE}"
+            echo "report_path=${REPORT_FILE}" >> "$GITHUB_OUTPUT"
+          else
+            echo "report_path=" >> "$GITHUB_OUTPUT"
+          fi
+
+      # ── Step 9: Create GitHub Release ──
+      - name: Create Release
+        id: create_release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.metadata.outputs.tag }}
+          name: Alya OS ${{ steps.metadata.outputs.version }}
+          body: |
+            ## Alya OS ${{ steps.metadata.outputs.version }}
+
+            **ISO:** ${{ steps.metadata.outputs.iso_name }}
+            **Size:** ${{ steps.metadata.outputs.iso_size }}
+            **SHA256:** `${{ steps.metadata.outputs.iso_sha256 }}`
+
+            ### Upstream
+            CachyOS-Live-ISO pinned at commit [33bbc02](https://github.com/CachyOS/CachyOS-Live-ISO/commit/33bbc02)
+          draft: false
+          prerelease: ${{ contains(github.ref_name, 'rc') || contains(github.ref_name, 'beta') || contains(github.ref_name, 'alpha') }}
+          files: |
+            ${{ steps.metadata.outputs.iso_path }}
+            ${{ steps.metadata.outputs.report_path }}
