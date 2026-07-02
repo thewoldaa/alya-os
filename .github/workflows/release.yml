@@ -84,6 +84,7 @@ jobs:
       # ── Step 7: Initialize submodule ──
       - name: Initialize upstream submodule
         run: |
+          git config --global --add safe.directory "${GITHUB_WORKSPACE}"
           git submodule update --init --recursive
           git -C upstream checkout 33bbc02
 
