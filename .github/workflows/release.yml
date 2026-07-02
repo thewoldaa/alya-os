@@ -30,20 +30,24 @@ jobs:
       BUILD_USER: build
 
     steps:
-      # ── Step 1: Checkout with submodules ──
+      # ── Step 1: Install git (archlinux:base-devel may not include it) ──
+      - name: Install git
+        run: pacman -Syu --noconfirm git
+
+      # ── Step 2: Checkout with submodules ──
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           submodules: recursive
           fetch-depth: 0
 
-      # ── Step 2: Initialize pacman keyring ──
+      # ── Step 3: Initialize pacman keyring ──
       - name: Initialize pacman keyring
         run: |
           pacman-key --init
           pacman-key --populate archlinux
 
-      # ── Step 3: Install build dependencies ──
+      # ── Step 4: Install build dependencies ──
       - name: Install dependencies
         run: |
           pacman -Syu --noconfirm
@@ -63,27 +67,27 @@ jobs:
             'SigLevel = Optional TrustAll' >> /etc/pacman.conf
           pacman -Syu --noconfirm cachyos-keyring
 
-      # ── Step 4: Create build user ──
+      # ── Step 5: Create build user ──
       - name: Create build user
         run: |
           useradd -m -G wheel "${BUILD_USER}"
           printf '%s ALL=(ALL) NOPASSWD: ALL\n' "${BUILD_USER}" >> /etc/sudoers
           chown -R "${BUILD_USER}:" "${GITHUB_WORKSPACE}"
 
-      # ── Step 5: Pre-populate CachyOS GPG keyring ──
+      # ── Step 6: Pre-populate CachyOS GPG keyring ──
       - name: Pre-populate CachyOS keyring in overlay
         run: |
           mkdir -p overlay/airootfs/etc/pacman.d/gnupg
           cp -a --no-preserve=ownership /etc/pacman.d/gnupg/. \
             overlay/airootfs/etc/pacman.d/gnupg/
 
-      # ── Step 6: Initialize submodule ──
+      # ── Step 7: Initialize submodule ──
       - name: Initialize upstream submodule
         run: |
           git submodule update --init --recursive
           git -C upstream checkout 33bbc02
 
-      # ── Step 7: Build Alya OS ISO ──
+      # ── Step 8: Build Alya OS ISO ──
       - name: Build Alya OS ISO
         id: build
         working-directory: ${{ github.workspace }}
@@ -92,7 +96,7 @@ jobs:
           chown -R "${BUILD_USER}:" .
           sudo -u "${BUILD_USER}" bash build.sh
 
-      # ── Step 8: Generate release metadata ──
+      # ── Step 9: Generate release metadata ──
       - name: Generate release metadata
         id: metadata
         run: |
@@ -120,7 +124,7 @@ jobs:
             echo "report_path=" >> "$GITHUB_OUTPUT"
           fi
 
-      # ── Step 9: Create GitHub Release ──
+      # ── Step 10: Create GitHub Release ──
       - name: Create Release
         id: create_release
         uses: softprops/action-gh-release@v2
