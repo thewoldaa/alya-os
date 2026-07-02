@@ -160,7 +160,7 @@ for pkg_dir in "${SCRIPT_DIR}/packages"/*/; do
         log_i 6 "Building: ${pkg}"
         if (
             cd "${pkg_dir}"
-            BUILDDIR="${PKG_DIR}/src" PKGDEST="${PKG_DIR}" makepkg -sc --noconfirm --needed 2>&1 | tail -1
+            PKGDEST="${PKG_DIR}" makepkg -sc --noconfirm --needed 2>&1 | tail -1
         ); then
             log_ok "Built: ${pkg}"
             BUILT_PKGS+=("${pkg}")
@@ -186,7 +186,7 @@ log_ok "Custom packages built: ${#BUILT_PKGS[@]}"
 # ──────────────── STAGE 7: MERGE PACKAGES ────────────────
 stage 7 "Merge Package Lists"
 ALYA_LIST="${SCRIPT_DIR}/packages-alya.x86_64"
-MERGED_LIST="${BUILD_DIR}/archiso/packages_desktop.x86_64"
+MERGED_LIST="${BUILD_DIR}/archiso/packages.x86_64"
 
 # Auto-detect upstream package list (might be named differently in future)
 CACHYOS_LIST=$(find "${UPSTREAM_DIR}/archiso" -maxdepth 1 -name 'packages*.x86_64' | head -1 || true)

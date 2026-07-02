@@ -13,7 +13,7 @@ source=('data/wallpapers/alya-default.png' 'data/icons/alya-os.png'
         'data/plymouth/plymouthd.defaults' 'data/plymouth/alya.plymouth' 'data/plymouth/alya.script'
         'LICENSE')
 sha256sums=('SKIP')
-backup=('/etc/plymouth/plymouthd.defaults')
+backup=('etc/plymouth/plymouthd.defaults')
 
 package() {
     # Wallpaper
