@@ -48,19 +48,26 @@ jobs:
       BUILD_USER: build
 
     steps:
-      # ── Step 1: Checkout with submodules ──
+      # ── Step 1: Install git (archlinux:base-devel may not include it) ──
+      # actions/checkout falls back to REST API download if git is missing,
+      # which does NOT support submodules. Install git first so checkout
+      # can create a proper local repository with submodule support.
+      - name: Install git
+        run: pacman -Syu --noconfirm git
+
+      # ── Step 2: Checkout with submodules ──
       - name: Checkout repository
         uses: actions/checkout@v4
         with:
           submodules: recursive
 
-      # ── Step 2: Initialize pacman (required in fresh container) ──
+      # ── Step 3: Initialize pacman (required in fresh container) ──
       - name: Initialize pacman keyring
         run: |
           pacman-key --init
           pacman-key --populate archlinux
 
-      # ── Step 3: Install build dependencies ──
+      # ── Step 4: Install build dependencies ──
       - name: Install dependencies
         run: |
           pacman -Syu --noconfirm
@@ -81,7 +88,7 @@ jobs:
             'SigLevel = Optional TrustAll' >> /etc/pacman.conf
           pacman -Syu --noconfirm cachyos-keyring
 
-      # ── Step 4: Create build user (makepkg refuses to run as root) ──
+      # ── Step 5: Create build user (makepkg refuses to run as root) ──
       - name: Create build user
         run: |
           useradd -m -G wheel "${BUILD_USER}"
@@ -90,7 +97,7 @@ jobs:
           # makepkg needs write access to build output
           chown -R "${BUILD_USER}:" "${GITHUB_WORKSPACE}"
 
-      # ── Step 5: Pre-populate CachyOS GPG keyring in overlay ──
+      # ── Step 6: Pre-populate CachyOS GPG keyring in overlay ──
       # mkarchiso calls pacstrap with -G (no host keyring copy).
       # We inject the key into overlay/airootfs so build.sh copies it
       # into the chroot before pacstrap runs.
@@ -100,13 +107,13 @@ jobs:
           cp -a --no-preserve=ownership /etc/pacman.d/gnupg/. \
             overlay/airootfs/etc/pacman.d/gnupg/
 
-      # ── Step 6: Initialize submodule (build.sh expects pinned commit) ──
+      # ── Step 7: Initialize submodule (build.sh expects pinned commit) ──
       - name: Initialize upstream submodule
         run: |
           git submodule update --init --recursive
           git -C upstream checkout 33bbc02
 
-      # ── Step 7: Record pre-build metrics ──
+      # ── Step 8: Record pre-build metrics ──
       - name: Record start metrics
         run: |
           echo "START_TS=$(date +%s)" >> "$GITHUB_ENV"
@@ -114,7 +121,7 @@ jobs:
           free -h
           df -h /
 
-      # ── Step 8: Build Alya OS ISO ──
+      # ── Step 9: Build Alya OS ISO ──
       - name: Build Alya OS ISO
         id: build
         working-directory: ${{ github.workspace }}
@@ -126,7 +133,7 @@ jobs:
           chown -R "${BUILD_USER}:" .
           sudo -u "${BUILD_USER}" bash build.sh
 
-      # ── Step 9: Record post-build metrics ──
+      # ── Step 10: Record post-build metrics ──
       - name: Record end metrics
         run: |
           echo "END_TS=$(date +%s)" >> "$GITHUB_ENV"
@@ -134,7 +141,7 @@ jobs:
           free -h
           df -h /
 
-      # ── Step 10: Generate build report ──
+      # ── Step 11: Generate build report ──
       - name: Generate build report
         run: |
           ISO_FILE=$(ls out/*.iso 2>/dev/null | head -1)
@@ -182,7 +189,7 @@ jobs:
           echo "=== CI Build Report ==="
           cat "out/ci-report.txt"
 
-      # ── Step 11: Upload ISO ──
+      # ── Step 12: Upload ISO ──
       - name: Upload ISO
         uses: actions/upload-artifact@v4
         with:
@@ -190,7 +197,7 @@ jobs:
           path: out/*.iso
           retention-days: 7
 
-      # ── Step 12: Upload build reports ──
+      # ── Step 13: Upload build reports ──
       - name: Upload build reports
         if: always()
         uses: actions/upload-artifact@v4
