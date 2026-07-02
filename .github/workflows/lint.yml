@@ -1,0 +1,114 @@
+# Lint & Static Analysis
+# -------------------------------------------------------------------
+# Purpose:    Run shellcheck, yamllint, and structural consistency
+#             checks on Alya OS source files (excluding upstream/).
+#
+# Trigger:    Every push and pull request to main/develop.
+#             Path-scoped to relevant source files.
+
+name: Lint
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'build.sh'
+      - 'overlay/**'
+      - 'packages/**'
+      - '.github/workflows/*.yml'
+  pull_request:
+    branches: [ main, develop ]
+
+jobs:
+  shellcheck:
+    name: ShellCheck
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Install shellcheck
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq shellcheck
+
+      - name: Run shellcheck on build.sh
+        run: shellcheck --shell=bash build.sh
+
+      - name: Run shellcheck on overlay branding
+        run: shellcheck --shell=bash overlay/branding/profiledef.sh
+
+  yamllint:
+    name: YAML Lint
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install yamllint
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq yamllint
+
+      - name: Run yamllint on workflows
+        run: yamllint .github/workflows/
+
+  structure:
+    name: Structure Check
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+        with:
+          submodules: recursive
+
+      - name: Verify required files exist
+        run: |
+          MISSING=0
+          for f in \
+            build.sh \
+            README.md \
+            packages-alya.x86_64 \
+            .gitmodules \
+            .gitattributes \
+            overlay/grub/grub.cfg \
+            overlay/branding/profiledef.sh \
+            patches/01-efiboot-title.patch \
+            upstream/archiso/profiledef.sh \
+            upstream/buildiso.sh; do
+            if [ ! -f "$f" ]; then
+              echo "MISSING: $f"
+              MISSING=$((MISSING + 1))
+            else
+              echo "OK: $f"
+            fi
+          done
+          exit $MISSING
+
+      - name: Verify submodule is initialized
+        run: |
+          if [ ! -f upstream/.git ] && [ ! -d upstream/.git ]; then
+            echo "FAIL: upstream submodule not initialized"
+            exit 1
+          fi
+          echo "PASS: upstream submodule initialized"
+
+      - name: Verify overlay consistency
+        run: |
+          ERR=0
+          # Each overlay file should exist in the expected destination path
+          # GRUB overlay
+          if grep -q 'Alya' overlay/grub/grub.cfg 2>/dev/null; then
+            echo "OK: GRUB overlay branded"
+          else
+            echo "WARN: GRUB overlay may not be branded"
+          fi
+          # Branding
+          for f in os-release hostname issue; do
+            if [ -f "overlay/branding/$f" ]; then
+              echo "OK: overlay/branding/$f"
+            else
+              echo "MISSING: overlay/branding/$f"
+              ERR=$((ERR + 1))
+            fi
+          done
+          exit $ERR
