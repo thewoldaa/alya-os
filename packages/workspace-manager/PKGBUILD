@@ -9,7 +9,7 @@ license=('MIT')
 depends=('python' 'python-gobject' 'gtk3')
 install=workspace-manager.install
 source=('workspace-manager.py' 'workspace-manager.desktop' 'workspace-manager-icon.png' 'LICENSE')
-sha256sums=('SKIP')
+sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP')
 backup=()
 
 package() {

@@ -9,7 +9,7 @@ license=('MIT')
 depends=('python' 'python-gobject' 'gtk3' 'python-cairo')
 install=alya-launcher.install
 source=('launcher.py' 'launcher.json' 'alya-launcher.desktop' 'alya-icon.png' 'LICENSE')
-sha256sums=('SKIP')
+sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP')
 backup=()
 
 package() {

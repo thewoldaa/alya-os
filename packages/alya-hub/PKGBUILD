@@ -9,7 +9,7 @@ license=('MIT')
 depends=('python' 'python-gobject' 'gtk3' 'python-psutil')
 install=alya-hub.install
 source=('alya-hub.py' 'alya-hub.desktop' 'alya-hub-icon.png' 'LICENSE')
-sha256sums=('SKIP')
+sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP')
 backup=()
 
 package() {

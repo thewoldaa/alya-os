@@ -12,7 +12,7 @@ source=('alya-default.png' 'alya-os.png'
         'alya-dark.css' 'index.theme'
         'plymouthd.defaults' 'alya.plymouth' 'alya.script'
         'LICENSE')
-sha256sums=('SKIP')
+sha256sums=('SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP' 'SKIP')
 backup=('etc/plymouth/plymouthd.defaults')
 
 package() {
