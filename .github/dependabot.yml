@@ -1,15 +1,11 @@
 version: 2
 updates:
-  # Track GitHub Actions versions
-  - package-ecosystem: github-actions
-    directory: /
+  - package-ecosystem: "github-actions"
+    directory: "/"
     schedule:
-      interval: monthly
+      interval: "weekly"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
     labels:
-      - ci
-      - dependencies
-
-  # Track CachyOS upstream commit changes
-  # Manual tracking: Alya OS pins to a specific upstream commit.
-  # Dependabot will notify when actions update but NOT auto-update upstream.
-  # Upstream updates require manual verification via PoC workflow.
+      - "dependencies"

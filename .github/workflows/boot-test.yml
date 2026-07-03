@@ -1,0 +1,242 @@
+# Boot Validation — Alya OS ISO
+# -------------------------------------------------------------------
+# Purpose:    Boot the built ISO in QEMU under Legacy BIOS and UEFI,
+#             verify that it reaches a login prompt or desktop session.
+#
+# Trigger:    workflow_dispatch (manual), workflow_run (auto after
+#             build.yml success), or pull_request (path-scoped).
+#
+# Design:
+#   - Downloads the ISO artifact from build.yml (never rebuilds)
+#   - Runs two sequential QEMU tests: BIOS then UEFI
+#   - Each test: boots ISO, monitors serial output for boot patterns,
+#     captures screenshots via QMP screendump, converts PPM→PNG
+#   - BIOS failure does NOT abort the job — UEFI still runs
+#   - All logs, screenshots, and report are uploaded regardless of
+#     individual test results
+#
+# Dependencies (apt):
+#   qemu-system-x86, ovmf, expect, imagemagick
+
+name: Boot Validation
+
+on:
+  workflow_dispatch:
+  workflow_run:
+    workflows: ["Build Alya OS ISO"]
+    types: [completed]
+  pull_request:
+    paths:
+      - '.github/workflows/boot-test.yml'
+      - '.github/scripts/**'
+
+permissions:
+  actions: read   # needed to download artifact from build.yml
+  contents: read
+
+jobs:
+  boot-test:
+    runs-on: ubuntu-latest
+    # For workflow_run trigger: only run if the triggering build succeeded
+    if: >
+      github.event_name != 'workflow_run' ||
+      github.event.workflow_run.conclusion == 'success'
+
+    env:
+      GH_TOKEN: ${{ github.token }}
+
+    steps:
+      # ── Step 1: Checkout repository (for scripts/) ──
+      - name: Checkout repository
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      # ── Step 2: Determine source build run ──
+      # For workflow_run: use the triggering run's ID and SHA directly.
+      # For manual/PR triggers: search latest successful build.yml on the
+      # same branch via gh CLI (with conditional branch extraction).
+      - name: Determine source build run
+        id: source
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_run" ]; then
+            echo "run_id=${{ github.event.workflow_run.id }}" >> "$GITHUB_OUTPUT"
+            echo "sha=${{ github.event.workflow_run.head_sha }}" >> "$GITHUB_OUTPUT"
+            echo "ISO artifact: alya-os-iso-${{ github.event.workflow_run.head_sha }}"
+          else
+            # Determine branch: pull_request uses head ref, others use ref_name
+            if [ "${{ github.event_name }}" = "pull_request" ]; then
+              BRANCH="${{ github.event.pull_request.head.ref }}"
+            else
+              BRANCH="${{ github.ref_name }}"
+            fi
+            echo "Searching latest successful build on branch: $BRANCH"
+            RUN_ID=$(gh run list \
+              --workflow "Build Alya OS ISO" \
+              --branch "$BRANCH" \
+              --conclusion success \
+              --limit 1 \
+              --json databaseId \
+              --jq '.[0].databaseId')
+            if [ -z "$RUN_ID" ] || [ "$RUN_ID" = "null" ]; then
+              echo "FAIL: No successful build found on branch $BRANCH"
+              exit 1
+            fi
+            SHA=$(gh run view "$RUN_ID" --json headSha --jq '.headSha')
+            echo "run_id=$RUN_ID" >> "$GITHUB_OUTPUT"
+            echo "sha=$SHA" >> "$GITHUB_OUTPUT"
+            echo "Found build run $RUN_ID (SHA: $SHA)"
+          fi
+
+      # ── Step 3: Download ISO artifact from build.yml ──
+      - name: Download ISO artifact
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: alya-os-iso-${{ steps.source.outputs.sha }}
+          path: ./iso
+          run-id: ${{ steps.source.outputs.run_id }}
+          github-token: ${{ github.token }}
+
+      # ── Step 4: Verify ISO downloaded ──
+      - name: Verify ISO
+        run: |
+          ISO_FILE=$(ls iso/*.iso 2>/dev/null | head -1)
+          if [ -z "$ISO_FILE" ]; then
+            echo "FAIL: No ISO found in iso/"
+            ls -la iso/ 2>/dev/null || true
+            exit 1
+          fi
+          echo "ISO_FILE=$ISO_FILE" >> "$GITHUB_ENV"
+          echo "ISO_NAME=$(basename "$ISO_FILE")" >> "$GITHUB_ENV"
+          echo "ISO_SIZE=$(du -h "$ISO_FILE" | cut -f1)" >> "$GITHUB_ENV"
+          echo "ISO_SHA256=$(sha256sum "$ISO_FILE" | cut -d' ' -f1)" >> "$GITHUB_ENV"
+          echo "Downloaded: $(basename "$ISO_FILE") ($(du -h "$ISO_FILE" | cut -f1))"
+
+      # ── Step 5: Install QEMU dependencies ──
+      - name: Install QEMU dependencies
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq \
+            qemu-system-x86 \
+            ovmf \
+            expect \
+            imagemagick
+          echo "QEMU version: $(qemu-system-x86_64 --version | head -1)"
+
+      # ── Step 6: BIOS Boot Test ──
+      - name: BIOS Boot Test
+        id: bios
+        continue-on-error: true
+        run: |
+          mkdir -p output/bios
+          bash .github/scripts/qemu-boot-test.sh \
+            --iso "$ISO_FILE" \
+            --mode bios \
+            --output-dir output/bios \
+            --timeout 300 2>&1 | tee output/bios/test-summary.txt
+          exit "${PIPESTATUS[0]}"
+
+      # ── Step 7: UEFI Boot Test ──
+      - name: UEFI Boot Test
+        id: uefi
+        continue-on-error: true
+        run: |
+          mkdir -p output/uefi
+          bash .github/scripts/qemu-boot-test.sh \
+            --iso "$ISO_FILE" \
+            --mode uefi \
+            --output-dir output/uefi \
+            --timeout 300 2>&1 | tee output/uefi/test-summary.txt
+          exit "${PIPESTATUS[0]}"
+
+      # ── Step 8: Generate Boot Test Report ──
+      - name: Generate Boot Test Report
+        id: report
+        if: always()
+        run: |
+          BIOS_RESULT="FAIL"
+          UEFI_RESULT="FAIL"
+          BIOS_BOOT_DETECTED="N/A"
+          UEFI_BOOT_DETECTED="N/A"
+          BIOS_ELAPSED="N/A"
+          UEFI_ELAPSED="N/A"
+          BIOS_SCREENSHOTS=0
+          UEFI_SCREENSHOTS=0
+
+          # Parse BIOS results
+          BIOS_SUMMARY="output/bios/test-summary.txt"
+          if [ -f "$BIOS_SUMMARY" ]; then
+            BIOS_RESULT=$(grep -E '^RESULT=' "$BIOS_SUMMARY" 2>/dev/null | head -1 | cut -d= -f2)
+            BIOS_BOOT_DETECTED=$(grep -E '^BOOT_DETECTED=' "$BIOS_SUMMARY" 2>/dev/null | head -1 | cut -d= -f2)
+            BIOS_ELAPSED=$(grep -E '^ELAPSED=' "$BIOS_SUMMARY" 2>/dev/null | head -1 | cut -d= -f2)
+            BIOS_SCREENSHOTS=$(ls output/bios/boot-*.png 2>/dev/null | wc -l)
+            BIOS_RESULT="${BIOS_RESULT:-FAIL}"
+            BIOS_BOOT_DETECTED="${BIOS_BOOT_DETECTED:-N/A}"
+            BIOS_ELAPSED="${BIOS_ELAPSED:-N/A}"
+          fi
+
+          # Parse UEFI results
+          UEFI_SUMMARY="output/uefi/test-summary.txt"
+          if [ -f "$UEFI_SUMMARY" ]; then
+            UEFI_RESULT=$(grep -E '^RESULT=' "$UEFI_SUMMARY" 2>/dev/null | head -1 | cut -d= -f2)
+            UEFI_BOOT_DETECTED=$(grep -E '^BOOT_DETECTED=' "$UEFI_SUMMARY" 2>/dev/null | head -1 | cut -d= -f2)
+            UEFI_ELAPSED=$(grep -E '^ELAPSED=' "$UEFI_SUMMARY" 2>/dev/null | head -1 | cut -d= -f2)
+            UEFI_SCREENSHOTS=$(ls output/uefi/boot-*.png 2>/dev/null | wc -l)
+            UEFI_RESULT="${UEFI_RESULT:-FAIL}"
+            UEFI_BOOT_DETECTED="${UEFI_BOOT_DETECTED:-N/A}"
+            UEFI_ELAPSED="${UEFI_ELAPSED:-N/A}"
+          fi
+
+          # Generate markdown report
+          cat > BOOT_TEST_REPORT.md << REPORTEOF
+          # Alya OS — Boot Test Report
+
+          | Field | Value |
+          |-------|-------|
+          | ISO Name | ${{ env.ISO_NAME }} |
+          | ISO Size | ${{ env.ISO_SIZE }} |
+          | ISO SHA256 | ${{ env.ISO_SHA256 }} |
+          | QEMU Version | $(qemu-system-x86_64 --version | head -1) |
+          | BIOS Boot | ${BIOS_RESULT} |
+          | UEFI Boot | ${UEFI_RESULT} |
+          | BIOS Boot Detected | ${BIOS_BOOT_DETECTED} |
+          | UEFI Boot Detected | ${UEFI_BOOT_DETECTED} |
+          | BIOS Boot Time | ${BIOS_ELAPSED}s |
+          | UEFI Boot Time | ${UEFI_ELAPSED}s |
+          | BIOS Screenshots | ${BIOS_SCREENSHOTS} |
+          | UEFI Screenshots | ${UEFI_SCREENSHOTS} |
+          REPORTEOF
+
+          echo "BOOT_TEST_REPORT written"
+          cat BOOT_TEST_REPORT.md
+
+      # ── Step 9: Upload Boot Test Artifacts ──
+      - name: Upload Boot Test Artifacts
+        if: always()
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: alya-os-boot-test-${{ github.sha }}
+          path: |
+            output/**/*
+            BOOT_TEST_REPORT.md
+          retention-days: 30
+
+      # ── Step 10: GitHub Actions Step Summary ──
+      - name: Generate Step Summary
+        if: always()
+        run: |
+          BIOS_STATUS="${{ steps.bios.outcome == 'success' && '✅ PASS' || '❌ FAIL' }}"
+          UEFI_STATUS="${{ steps.uefi.outcome == 'success' && '✅ PASS' || '❌ FAIL' }}"
+          cat >> "$GITHUB_STEP_SUMMARY" << SUMMARYEOF
+          ## Alya OS — Boot Validation Results
+
+          | Check | Status |
+          |-------|--------|
+          | ✅ ISO Downloaded | ${{ env.ISO_NAME }} (${{ env.ISO_SIZE }}) |
+          | 🔄 BIOS Boot | ${BIOS_STATUS} |
+          | 🔄 UEFI Boot | ${UEFI_STATUS} |
+          | 📄 Report | Uploaded as artifact |
+          | 📸 Screenshots | Included in artifact |
+
+          **ISO SHA256:** \`${{ env.ISO_SHA256 }}\`
+
+          *Artifacts available for 30 days.*
+          SUMMARYEOF
