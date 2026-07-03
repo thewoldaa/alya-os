@@ -37,15 +37,6 @@ else
   echo "KVM not available — falling back to TCG software emulation"
 fi
 
-# Detect available display backend
-DISPLAY_BACKEND=""
-for backend in "egl-headless" "gtk" "sdl" "none"; do
-  if qemu-system-x86_64 -display "$backend" -help &>/dev/null; then
-    DISPLAY_BACKEND="$backend"
-    break
-  fi
-done
-
 # Build QEMU arguments
 QEMU_ARGS=(
   -machine type=q35,accel="$KVM_ACCEL"
@@ -54,7 +45,7 @@ QEMU_ARGS=(
   -cdrom "$ISO"
   -boot order=d
   -vga virtio
-  -display "$DISPLAY_BACKEND"
+  -display none
   -vnc :0
   -serial file:"$SERIAL_LOG"
   -qmp tcp:127.0.0.1:$QMP_PORT,server,nowait
@@ -63,11 +54,20 @@ QEMU_ARGS=(
 )
 
 if [[ "$MODE" = "uefi" ]]; then
-  if [[ -f /usr/share/ovmf/x64/OVMF.fd ]]; then
-    QEMU_ARGS+=(-bios /usr/share/ovmf/x64/OVMF.fd)
-  elif [[ -f /usr/share/edk2/x64/OVMF_CODE.fd ]]; then
-    QEMU_ARGS+=(-bios /usr/share/edk2/x64/OVMF_CODE.fd)
-  else
+  OVMF_FOUND=""
+  for path in \
+    /usr/share/OVMF/OVMF_CODE.fd \
+    /usr/share/OVMF/OVMF.fd \
+    /usr/share/ovmf/x64/OVMF.fd \
+    /usr/share/edk2/x64/OVMF_CODE.fd; do
+    if [[ -f "$path" ]]; then
+      QEMU_ARGS+=(-bios "$path")
+      OVMF_FOUND="$path"
+      echo "Using OVMF firmware: $path"
+      break
+    fi
+  done
+  if [[ -z "$OVMF_FOUND" ]]; then
     echo "WARN: OVMF firmware not found — UEFI test may fail"
   fi
 fi
