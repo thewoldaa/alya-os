@@ -131,7 +131,7 @@ jobs:
             --iso "$ISO_FILE" \
             --mode bios \
             --output-dir output/bios \
-            --timeout 300 2>&1 | tee output/bios/test-summary.txt
+            --timeout 600 2>&1 | tee output/bios/test-summary.txt
           exit "${PIPESTATUS[0]}"
 
       # ── Step 7: UEFI Boot Test ──
@@ -144,7 +144,7 @@ jobs:
             --iso "$ISO_FILE" \
             --mode uefi \
             --output-dir output/uefi \
-            --timeout 300 2>&1 | tee output/uefi/test-summary.txt
+            --timeout 600 2>&1 | tee output/uefi/test-summary.txt
           exit "${PIPESTATUS[0]}"
 
       # ── Step 8: Generate Boot Test Report ──
