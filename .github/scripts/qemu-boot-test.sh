@@ -95,7 +95,7 @@ finally:
 
 # Boot patterns to detect success (in order of preference)
 # Only checked after MIN_BOOT_TIME seconds to avoid false positives
-# from early firmware/bootloader/kernel output.
+# from early firmware/bootloader output.
 MIN_BOOT_TIME=20
 BOOT_PATTERNS=(
   "alya login:"
