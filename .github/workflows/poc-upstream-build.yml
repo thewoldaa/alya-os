@@ -59,7 +59,7 @@ jobs:
     steps:
       # ── Step 1: Checkout (present for future Alya integration) ──
       - name: Checkout repository
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
 
       # ── Step 2: Initialize pacman (required in fresh container) ──
       - name: Initialize pacman keyring
