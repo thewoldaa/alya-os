@@ -94,20 +94,21 @@ finally:
 }
 
 # Boot patterns to detect success (in order of preference)
+# Only checked after MIN_BOOT_TIME seconds to avoid false positives
+# from early firmware/bootloader/kernel output.
+MIN_BOOT_TIME=20
 BOOT_PATTERNS=(
   "alya login:"
-  "login:"
   "root@alya"
   "root@cachyos"
+  "login:"
   "labwc"
   "sddm"
   "gdm"
   "lightdm"
-  "ly"
-  "wayland"
   "display manager"
+  "wayland"
   "startx"
-  "session"
 )
 
 echo "Starting QEMU ($MODE mode)..."
@@ -162,8 +163,8 @@ while true; do
     LAST_SCREENSHOT_TIME=$ELAPSED
   fi
 
-  # Check serial log for boot patterns
-  if [[ -f "$SERIAL_LOG" ]] && [[ -s "$SERIAL_LOG" ]]; then
+  # Check serial log for boot patterns (skip early output to avoid false positives)
+  if [[ $ELAPSED -ge $MIN_BOOT_TIME ]] && [[ -f "$SERIAL_LOG" ]] && [[ -s "$SERIAL_LOG" ]]; then
     for pattern in "${BOOT_PATTERNS[@]}"; do
       if grep -qi "$pattern" "$SERIAL_LOG" 2>/dev/null; then
         BOOT_DETECTED="$pattern"
