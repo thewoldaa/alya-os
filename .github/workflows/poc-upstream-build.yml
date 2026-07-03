@@ -192,7 +192,7 @@ jobs:
 
       # ── Step 10: Upload ISO (artifact expires in 7 days) ──
       - name: Upload ISO
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: cachyos-upstream-iso-${{ steps.upstream.outputs.commit }}
           path: ${{ env.UPSTREAM_DIR }}/out/${{ env.BUILD_PROFILE }}/*.iso
@@ -200,7 +200,7 @@ jobs:
 
       # ── Step 11: Upload PoC report ──
       - name: Upload PoC report
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: poc-report-${{ steps.upstream.outputs.commit }}
           path: ${{ env.UPSTREAM_DIR }}/out/${{ env.BUILD_PROFILE }}/poc-report.txt
@@ -209,7 +209,7 @@ jobs:
       # ── Step 12: Upload build logs ──
       - name: Upload build logs
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: build-logs-${{ steps.upstream.outputs.commit }}
           path: ${{ env.UPSTREAM_DIR }}/build/**/*.log
